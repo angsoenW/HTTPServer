@@ -1,0 +1,100 @@
+SKIP NAVIGATION LINKSOVERVIEWPACKAGECLASSUSETREEINDEXHELPJava HTTP ServerPREV CLASSNEXT CLASSFRAMESNO FRAMESALL CLASSESSUMMARY: NESTED | FIELD | CONSTR | METHODDETAIL: FIELD | CONSTR | METHOD
+compact2, compact3
+com.sun.net.httpserver
+Class HttpExchange
+java.lang.Object
+com.sun.net.httpserver.HttpExchange
+Direct Known Subclasses:
+HttpsExchange
+
+@Exported
+public abstract class HttpExchange
+extends Object
+This class encapsulates a HTTP request received and a response to be generated in one exchange. It provides methods for examining the request from the client, and for building and sending the response.
+The typical life-cycle of a HttpExchange is shown in the sequence below.
+
+getRequestMethod() to determine the command
+getRequestHeaders() to examine the request headers (if needed)
+getRequestBody() returns a InputStream for reading the request body. After reading the request body, the stream is close.
+getResponseHeaders() to set any response headers, except content-length
+sendResponseHeaders(int,long) to send the response headers. Must be called before next step.
+getResponseBody() to get a OutputStream to send the response body. When the response body has been written, the stream must be closed to terminate the exchange.
+Terminating exchanges
+Exchanges are terminated when both the request InputStream and response OutputStream are closed. Closing the OutputStream, implicitly closes the InputStream (if it is not already closed). However, it is recommended to consume all the data from the InputStream before closing it. The convenience method close() does all of these tasks. Closing an exchange without consuming all of the request body is not an error but may make the underlying TCP connection unusable for following exchanges. The effect of failing to terminate an exchange is undefined, but will typically result in resources failing to be freed/reused.
+Since:
+1.6
+Constructor Summary
+Constructors
+Modifier	Constructor and Description
+protected	HttpExchange() 
+Method Summary
+All MethodsInstance MethodsAbstract Methods
+Modifier and Type	Method and Description
+abstract void	close()
+Ends this exchange by doing the following in sequence:
+abstract Object	getAttribute(String name)
+Filter modules may store arbitrary objects with HttpExchange instances as an out-of-band communication mechanism.
+abstract HttpContext	getHttpContext()
+Get the HttpContext for this exchange
+abstract InetSocketAddress	getLocalAddress()
+Returns the local address on which the request was received
+abstract HttpPrincipal	getPrincipal()
+If an authenticator is set on the HttpContext that owns this exchange, then this method will return the HttpPrincipal that represents the authenticated user for this HttpExchange.
+abstract String	getProtocol()
+Returns the protocol string from the request in the form protocol/majorVersion.minorVersion.
+abstract InetSocketAddress	getRemoteAddress()
+Returns the address of the remote entity invoking this request
+abstract InputStream	getRequestBody()
+returns a stream from which the request body can be read.
+abstract Headers	getRequestHeaders()
+Returns an immutable Map containing the HTTP headers that were included with this request.
+abstract String	getRequestMethod()
+Get the request method
+abstract URI	getRequestURI()
+Get the request URI
+abstract OutputStream	getResponseBody()
+returns a stream to which the response body must be written.
+abstract int	getResponseCode()
+Returns the response code, if it has already been set
+abstract Headers	getResponseHeaders()
+Returns a mutable Map into which the HTTP response headers can be stored and which will be transmitted as part of this response.
+abstract void	sendResponseHeaders(int rCode, long responseLength)
+Starts sending the response back to the client using the current set of response headers and the numeric response code as specified in this method.
+abstract void	setAttribute(String name, Object value)
+Filter modules may store arbitrary objects with HttpExchange instances as an out-of-band communication mechanism.
+abstract void	setStreams(InputStream i, OutputStream o)
+Used by Filters to wrap either (or both) of this exchange's InputStream and OutputStream, with the given filtered streams so that subsequent calls to getRequestBody() will return the given InputStream, and calls to getResponseBody() will return the given OutputStream.
+Methods inherited from class java.lang.Object
+clone, equals, finalize, getClass, hashCode, notify, notifyAll, toString, wait, wait, wait
+Constructor Detail
+HttpExchange
+protected HttpExchange()
+Method Detail
+getRequestHeaders
+public abstract Headers getRequestHeaders()
+Returns an immutable Map containing the HTTP headers that were included with this request. The keys in this Map will be the header names, while the values will be a List of Strings containing each value that was included (either for a header that was listed several times, or one that accepts a comma-delimited list of values on a single line). In either of these cases, the values for the header name will be presented in the order that they were included in the request.
+The keys in Map are case-insensitive.
+
+Returns:
+a read-only Map which can be used to access request headers
+getResponseHeaders
+public abstract Headers getResponseHeaders()
+Returns a mutable Map into which the HTTP response headers can be stored and which will be transmitted as part of this response. The keys in the Map will be the header names, while the values must be a List of Strings containing each value that should be included multiple times (in the order that they should be included).
+The keys in Map are case-insensitive.
+
+Returns:
+a writable Map which can be used to set response headers.
+getRequestURI
+public abstract URI getRequestURI()
+Get the request URI
+Returns:
+the request URI
+getRequestMethod
+public abstract String getRequestMethod()
+Get the request method
+Returns:
+the request method
+getHttpContext
+public abstract HttpContext getHttpContext()
+Get the HttpContext for this exchange
+Returns:
