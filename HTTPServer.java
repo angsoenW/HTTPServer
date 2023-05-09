@@ -1,26 +1,25 @@
 import java.io.*;
 import java.net.*;
 import java.nio.file.Files;
+import java.awt.Image;
+import java.awt.image.BufferedImage;
+import javax.imageio.ImageIO;
 
 public class HTTPServer {
 
     private static void handleRequest(Socket socket) throws IOException {
-
         BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         DataOutputStream out = new DataOutputStream(socket.getOutputStream());
         String firstLine = in.readLine();
+        System.out.println(firstLine);
         String[] requestParts = firstLine.split(" ");
         String method = requestParts[0];
         String path = requestParts[1];
 
         if (method.equals("GET")) {
-        System.out.println("get");
-
             handleGetRequest(out, path);
-            System.out.println("get");
-        // } else if (method.equals("POST")) {
-        //     handlePostRequest(in, out, path);
-
+        } else if (method.equals("POST")) {
+            handlePostRequest(in, out, path);
         } else {
             sendErrorResponse(out, 501, "Not Implemented");
         }
@@ -45,84 +44,101 @@ public class HTTPServer {
             String header = statusLine + contentLength + contentType;
             System.out.println(header);
             byte[] fileContent = Files.readAllBytes(file.toPath());
-
             out.write(header.getBytes());
             out.write(fileContent);
-            System.out.println("done");
+
+        
         }
 
     }
 
-    // private static void handlePostRequest(BufferedReader in, DataOutputStream out, String path) throws IOException {
+    private static void handlePostRequest(BufferedReader in, DataOutputStream out, String path) throws IOException {
+        File file = new File("." + path).getCanonicalFile();
+        String line;
+        String content = "";
+        Boolean isPlain = false;
+        Boolean isBody = false;
+
+        try {
+            while ((line = in.readLine()) != null) {
+                if (line.contains("Content-Type: text/plain")) {
+                    isPlain = true;
+                }
+                if (line.isEmpty()) {
+                    isBody = true;
+                }
+                if (isBody) {
+                    content = content + line + "\n";
+                }
+
+            }
+        } catch (IOException e) {
+            System.out.println("An error occurred.");
+        }
+
+        if (!file.isFile()) {
+            sendErrorResponse(out, 404, "Not Implemented");
+        } else if (isPlain) {
+            try {
+                FileWriter myWriter = new FileWriter(file, true);
+                myWriter.write(content);
+                myWriter.close();
+                System.out.println("Successfully wrote to the file.");
+                String statusLine = "HTTP/1.1 201 CREATED\n";
+                out.write(statusLine.getBytes());
+            } catch (IOException e) {
+                System.out.println("An error occurred.");
+                e.printStackTrace();
+                sendErrorResponse(out, 503, "SERVICE UNAVAILABLE");
+            }
+        } else {
+            sendErrorResponse(out, 404, "Not Implemented");
+        }
+    }
+
+    // private static void handlePutRequest(BufferedReader in, DataOutputStream out, String path) throws IOException {
     //     File file = new File("." + path).getCanonicalFile();
-    //     String line;
-    //     String content;
-    //     Boolean isPlain = false;
-    //     Boolean isBody = false;
-    //     while ((line = in.readLine()) != null) {
-    //         if (isPlain == false) {
-    //             if (line.contains("Content-Type: text/plain")) {
-    //                 isPlain = true;
-    //             }
-    //         }
-    //         if (isPlain == true && isBody == false) {
-    //             if (line.equals("")) {
-    //                 isBody = true;
-    //             }
-    //         }
-    //         if (isPlain == true && isBody == true) {
-    //             content = content + line;
-    //         }
-            
-    //     }
 
     //     String line;
     //     String content = "";
-    //     Boolean isPlain = false;
+    //     String fileType = "text/plain";
     //     Boolean isBody = false;
-    //     while ((line = in.readLine()) != null) {
-    //         System.out.println(line);
-    //         if (line.isEmpty()) {
-    //             break;
-    //         }
-    //         if (isPlain == false) {
-    //             if (line.contains("Content-Type: text/plain")) {
-    //                 isPlain = true;
+    //     Byte[] imgFile;
+
+    //     try {
+    //         while ((line = in.readLine()) != null) {
+    //             if (line.contains("Content-Type: image/png")) {
+    //                 fileType = "image/png";
     //             }
-    //         }
-    //         if (isPlain == true && isBody == false) {
-    //             if (line.equals("")) {
+    //             if (line.isEmpty()) {
     //                 isBody = true;
     //             }
+    //             if (isBody && fileType.equals("text/plain")) {
+    //                 content = content + line + "\n";
+    //             }
+
     //         }
-    //         if (isPlain == true && isBody == true) {
-    //             content = content + line;
-                
-    //         }
-            
+    //     } catch (IOException e) {
+    //         System.out.println("An error occurred.");
     //     }
 
-    
 
-
-    // System.out.println(content.toString());
-        
-
-    //     System.out.println(content);
-    //     System.out.println("Content done" + isBody);
-    //     System.out.println(isPlain);
-
-    //     if (!file.isFile())
-
-    //     {
-    //         sendErrorResponse(out, 404, "Not Implemented");
-    //     } else if (requestType.equals("text/plain")) {
-    //         InputStream msg = httpExchange.getRequestBody();
+    //     if (file.isFile()) {
     //         try {
-    //             FileWriter myWriter = new FileWriter(file, true);
-    //             myWriter.write(msg.toString());
-    //             myWriter.close();
-    //             System.out.println("Successfully wrote to the file.");
+    //             if (fileType.equals("image/png")) {
+    //                 String[] requestParts = content.split("\n");
+    //                 for (int i = 0; i < requestParts.length; i++) {
+    //                     imgFile[i] = (byte)Integer.parseInt(requestParts[0]);
+    //                 }
+    //                 BufferedImage img = ImageIO.read(content);
+    //                 ImageIO.write(img, "PNG", file);
+    //             } else {
+    //                 InputStream content = httpExchange.getRequestBody();
+    //                 FileWriter myWriter = new FileWriter(file, false);
+    //                 myWriter.write(content.toString());
+    //                 myWriter.close();
+    //             }
+    //             System.out.println("Successfully overwrote to the file.");
     //             String response = "201 (Created)\n";
     //             httpExchange.sendResponseHeaders(201, 0);
     //             OutputStream os = httpExchange.getResponseBody();
@@ -133,66 +149,32 @@ public class HTTPServer {
     //             e.printStackTrace();
     //             handle503(httpExchange);
     //         }
+    //     } else if (file.createNewFile()) {
+    //         try {
+    //             if (requestType.equals("image/png")) {
+    //                 httpExchange.getResponseHeaders().set("Content-Type", requestType);
+    //                 BufferedImage img = ImageIO.read(httpExchange.getRequestBody());
+    //                 ImageIO.write(img, "PNG", file);
+    //             } else {
+    //                 InputStream content = httpExchange.getRequestBody();
+    //                 FileWriter myWriter = new FileWriter(file, false);
+    //                 myWriter.write(content.toString());
+    //                 myWriter.close();
+    //             }
+    //             System.out.println("File created: " + file.getName());
+    //             String response = "201 (Created)\n";
+    //             httpExchange.sendResponseHeaders(201, 0);
+    //             OutputStream os = httpExchange.getResponseBody();
+    //             os.write(response.getBytes());
+    //             os.close();
+    //         } catch (IOException e) {
+    //             System.out.println("An error occurred.");
+    //             e.printStackTrace();
+    //             handle500(httpExchange);
+    //         }
     //     } else {
     //         handle404(httpExchange);
     //     }
-    // }
-
-    // private static void handlePutRequest(BufferedReader in, DataOutputStream out,
-    // String path) throws IOException {
-    // URI uri = httpExchange.getRequestURI();
-    // File file = new File("." + uri.getPath()).getCanonicalFile();
-    // String requestType = handleMIMEType(httpExchange);
-
-    // if (file.isFile()) {
-    // try {
-    // if (requestType.equals("image/png")) {
-    // httpExchange.getResponseHeaders().set("Content-Type", requestType);
-    // BufferedImage img = ImageIO.read(httpExchange.getRequestBody());
-    // ImageIO.write(img, "PNG", file);
-    // } else {
-    // InputStream content = httpExchange.getRequestBody();
-    // FileWriter myWriter = new FileWriter(file, false);
-    // myWriter.write(content.toString());
-    // myWriter.close();
-    // }
-    // System.out.println("Successfully overwrote to the file.");
-    // String response = "201 (Created)\n";
-    // httpExchange.sendResponseHeaders(201, 0);
-    // OutputStream os = httpExchange.getResponseBody();
-    // os.write(response.getBytes());
-    // os.close();
-    // } catch (IOException e) {
-    // System.out.println("An error occurred.");
-    // e.printStackTrace();
-    // handle503(httpExchange);
-    // }
-    // } else if (file.createNewFile()) {
-    // try {
-    // if (requestType.equals("image/png")) {
-    // httpExchange.getResponseHeaders().set("Content-Type", requestType);
-    // BufferedImage img = ImageIO.read(httpExchange.getRequestBody());
-    // ImageIO.write(img, "PNG", file);
-    // } else {
-    // InputStream content = httpExchange.getRequestBody();
-    // FileWriter myWriter = new FileWriter(file, false);
-    // myWriter.write(content.toString());
-    // myWriter.close();
-    // }
-    // System.out.println("File created: " + file.getName());
-    // String response = "201 (Created)\n";
-    // httpExchange.sendResponseHeaders(201, 0);
-    // OutputStream os = httpExchange.getResponseBody();
-    // os.write(response.getBytes());
-    // os.close();
-    // } catch (IOException e) {
-    // System.out.println("An error occurred.");
-    // e.printStackTrace();
-    // handle500(httpExchange);
-    // }
-    // } else {
-    // handle404(httpExchange);
-    // }
     // }
 
     // private static void handleDeleteRequest(DataOutputStream out, String path)
