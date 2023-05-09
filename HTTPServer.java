@@ -12,43 +12,6 @@ public class HTTPServer {
         String[] requestParts = firstLine.split(" ");
         String method = requestParts[0];
         String path = requestParts[1];
-        
-
-        String line;
-        String content = "";
-        Boolean isPlain = false;
-        Boolean isBody = false;
-        while ((line = in.readLine()) != null) {
-            System.out.println(line);
-            if (line.isEmpty()) {
-                break;
-            }
-            if (isPlain == false) {
-                if (line.contains("Content-Type: text/plain")) {
-                    isPlain = true;
-                }
-            }
-            if (isPlain == true && isBody == false) {
-                if (line.equals("")) {
-                    isBody = true;
-                }
-            }
-            if (isPlain == true && isBody == true) {
-                content = content + line;
-                
-            }
-            
-        }
-
-    
-
-
-    System.out.println(content.toString());
-        
-
-        System.out.println(content);
-        System.out.println("Content done" + isBody);
-        System.out.println(isPlain);
 
         if (method.equals("GET")) {
         System.out.println("get");
@@ -112,6 +75,42 @@ public class HTTPServer {
     //         }
             
     //     }
+
+    //     String line;
+    //     String content = "";
+    //     Boolean isPlain = false;
+    //     Boolean isBody = false;
+    //     while ((line = in.readLine()) != null) {
+    //         System.out.println(line);
+    //         if (line.isEmpty()) {
+    //             break;
+    //         }
+    //         if (isPlain == false) {
+    //             if (line.contains("Content-Type: text/plain")) {
+    //                 isPlain = true;
+    //             }
+    //         }
+    //         if (isPlain == true && isBody == false) {
+    //             if (line.equals("")) {
+    //                 isBody = true;
+    //             }
+    //         }
+    //         if (isPlain == true && isBody == true) {
+    //             content = content + line;
+                
+    //         }
+            
+    //     }
+
+    
+
+
+    // System.out.println(content.toString());
+        
+
+    //     System.out.println(content);
+    //     System.out.println("Content done" + isBody);
+    //     System.out.println(isPlain);
 
     //     if (!file.isFile())
 
